@@ -14,7 +14,7 @@ hsl = (h, s, l) ->
 
 map = (v, min, max) -> min+(max-min)*Math.min(1,Math.max(0,v))
 
-makeHSLRef = (radius, width) ->
+makeHSLRef = (radius, width, lightness=0.5) ->
   canvas = document.createElement 'canvas'
   canvas.width = canvas.height = radius * 2
   ctx = canvas.getContext '2d'
@@ -35,7 +35,7 @@ makeHSLRef = (radius, width) ->
       d -= 10
       s = Math.max 0, Math.min 1, d / (radius-width/2-10)
       h = Math.atan2(dy, dx) / (Math.PI*2)
-      {r, g, b} = hsl h, s, 0.5
+      {r, g, b} = hsl h, s, lightness
       data[(y*canvas.width+x)*4+0] = r*255
       data[(y*canvas.width+x)*4+1] = g*255
       data[(y*canvas.width+x)*4+2] = b*255
@@ -84,6 +84,9 @@ knob = (size) ->
   el.style.webkitBoxShadow = 'white 0px 1px 1px inset, rgba(0, 0, 0, 0.4) 0px -1px 1px inset, rgba(0, 0, 0, 0.4) 0px 1px 4px 0px, rgba(0, 0, 0, 0.6) 0 0 2px'
   el
 
+hslToCSS = (h, s, l) ->
+  'hsl('+Math.round(h*180/Math.PI)+','+Math.round(s*100)+'%,'+Math.round(l*100)+'%)'
+
 makePicker = ->
   origRadius = 100
   radius = 100
@@ -93,22 +96,43 @@ makePicker = ->
   ref = makeHSLRef radius, width
   circle = makeHSLCircle ref, 1
   circleContainer = document.createElement 'div'
+  circleContainer.style.display = 'inline-block'
   circleContainer.appendChild circle
   div.appendChild circleContainer
   div.style.position = 'relative'
 
+  lSlider = div.appendChild document.createElement 'div'
+  lSlider.style.display = 'inline-block'
+  lSlider.style.width = '20px'
+  lSlider.style.height = radius*2-22 + 'px'
+  lSlider._height = radius*2-22
+  lSlider.style.marginLeft = '6px'
+  lSlider.style.borderRadius = '10px'
+  lSlider.style.boxShadow = 'hsla(0, 100%, 100%, 0.1) 0 1px 2px 1px inset, hsla(0, 100%, 100%, 0.2) 0 1px inset, hsla(0, 0%, 0%, 0.4) 0 -1px 1px inset, hsla(0, 0%, 0%, 0.4) 0 1px 1px'
+  lSlider.style.position = 'relative'
+  lSlider.style.top = '-11px'
+
+  lKnob = knob 22
+  lKnob.style.left = '-1px'
+  lSlider.appendChild lKnob
+
   currentH = Math.PI
   currentS = 1
+  currentL = 0.5
 
   k = knob 27
   circleContainer.appendChild k
+
   div.setH = (h) ->
     r = map(currentS, width, radius) - width / 2
     oR = origRadius - width / 2
     k.style.left = Math.round(oR + Math.cos(h)*r + 6 - 1) + 'px'
     k.style.top = Math.round(oR + Math.sin(h)*r + 6 - 1) + 'px'
-    k.style.backgroundColor = 'hsl('+Math.round(h*180/Math.PI)+','+Math.floor(currentS*100)+'%,50%)'
     currentH = h
+    k.style.backgroundColor = hslToCSS(currentH, currentS, currentL)
+    lKnob.style.backgroundColor = k.style.backgroundColor
+
+    lSlider.style.backgroundImage = '-webkit-gradient(linear, 50% 100%, 50% 0%, from(black),color-stop(0.5,'+hslToCSS(currentH,currentS,currentL)+'),to(white))'
 
   div.setS = (s) ->
     newCircle = makeHSLCircle ref, s
@@ -116,6 +140,30 @@ makePicker = ->
     circle = newCircle
     currentS = s
     div.setH currentH
+
+  div.setL = (l) ->
+    ref = makeHSLRef radius, width, l
+    currentL = l
+    lKnob.style.top = (1-l) * lSlider._height - 11 + 'px'
+    div.setS currentS
+
+
+  lKnob.onmousedown = (e) ->
+    document.documentElement.style.cursor = 'pointer'
+    window.addEventListener('mousemove', move = (e) ->
+      r = lSlider.getBoundingClientRect()
+      y = e.clientY - r.top
+      div.setL Math.max 0, Math.min 1, 1-(y / (lSlider._height))
+    )
+    window.addEventListener('mouseup', up = (e) ->
+      window.removeEventListener('mousemove', move)
+      window.removeEventListener('mouseup', up)
+      window.removeEventListener('blur', up)
+      document.documentElement.style.cursor = ''
+    )
+    window.addEventListener('blur', up)
+    e.preventDefault()
+    e.stopPropagation()
 
   attachSaturationControl = (c) ->
     updateCursor = (e) ->
@@ -183,7 +231,7 @@ makePicker = ->
     window.addEventListener('blur', up)
     e.preventDefault()
     e.stopPropagation()
-  div.setS 1
+  div.setL 0.5
   div
 
 window.makePicker = makePicker

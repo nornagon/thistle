@@ -1,16 +1,26 @@
 <!doctype html>
+<style>
+  .swatch {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    border: 1px solid rgba(20,20,20,0.3);
+  }
+</style>
 <body>
-  <style>
-    .picker {
-      display: inline-block;
-      background: hsl(0, 0%, 97%);
-      padding: 6px;
-      border-radius: 6px;
-      box-shadow: 1px 1px 5px hsla(0, 0%, 39%, 0.2);
-      border: 1px solid hsla(0, 0%, 59%, 0.2);
-    }
-  </style>
+  <div id='color'>
+    <div class='swatch' style='background-color: beige'></div>
+    beige
+  </div>
 <script src='picker.js'></script>
 <script>
-  picker = document.body.appendChild(makePicker())
+  color.onclick = function(e) {
+    var rgb = getComputedStyle(color.querySelector('.swatch')).backgroundColor
+    m = /^rgb\((\d+), (\d+), (\d+)\)$/.exec(rgb)
+    var r = parseInt(m[1])/255, g = parseInt(m[2])/255, b = parseInt(m[3])/255
+    picker = makePicker({r:r,g:g,b:b})
+    picker.el.style.left = e.pageX + 'px'
+    picker.el.style.top = e.pageY + 'px'
+    document.body.appendChild(picker.el)
+  }
 </script>

@@ -147,7 +147,7 @@ makePicker = (color={h:180,s:1,l:0.5}) ->
     borderRadius: '6px'
     boxShadow: '1px 1px 5px hsla(0, 0%, 39%, 0.2), hsla(0, 0%, 100%, 0.9) 0px 0px 1em 0.3em inset'
     border: '1px solid hsla(0, 0%, 59%, 0.2)'
-    position: 'relative'
+    position: 'absolute'
     backgroundImage: '-webkit-gradient(linear, 0% 0%, 100% 100%, color-stop(25%, hsla(0, 0%, 0%, 0.05)), color-stop(25%, transparent), color-stop(50%, transparent), color-stop(50%, hsla(0, 0%, 0%, 0.05)), color-stop(75%, hsla(0, 0%, 0%, 0.05)), color-stop(75%, transparent), color-stop(100%, transparent))'
     backgroundSize: '40px 40px'
 

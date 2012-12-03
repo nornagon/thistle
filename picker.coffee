@@ -263,6 +263,13 @@ makePicker = (color={h:180,s:1,l:0.5}) ->
         c.removeEventListener 'mouseout', out
     c.addEventListener 'mousedown', (e) ->
       e.preventDefault()
+
+      x = e.offsetX; y = e.offsetY
+      dx = x-radius; dy = y-radius; d = Math.sqrt(dx*dx+dy*dy)
+      t = Math.atan2 dy, dx
+      r = map(currentS, width, radius)
+      return unless r-width < d < r
+
       document.documentElement.style.cursor = c.style.cursor
       window.addEventListener('mousemove', move = (e) ->
         r = circle.getBoundingClientRect()

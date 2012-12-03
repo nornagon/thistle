@@ -14,13 +14,39 @@
   </div>
 <script src='picker.js'></script>
 <script>
-  color.onclick = function(e) {
-    var rgb = getComputedStyle(color.querySelector('.swatch')).backgroundColor
-    m = /^rgb\((\d+), (\d+), (\d+)\)$/.exec(rgb)
-    var r = parseInt(m[1])/255, g = parseInt(m[2])/255, b = parseInt(m[3])/255
-    picker = makePicker({r:r,g:g,b:b})
-    picker.el.style.left = e.pageX + 'px'
-    picker.el.style.top = e.pageY + 'px'
+  function cssColorToRGB(cssColor) {
+    var s = document.createElement('span')
+    document.body.appendChild(s)
+    s.style.backgroundColor = cssColor
+    var rgb = getComputedStyle(s).backgroundColor
+    document.body.removeChild(s)
+    var m = /^rgb\((\d+), (\d+), (\d+)\)$/.exec(rgb)
+    if (!m) m = /^rgba\((\d+), (\d+), (\d+), ([\d.]+)\)$/.exec(rgb)
+    var r = parseInt(m[1]), g = parseInt(m[2]), b = parseInt(m[3])
+    if (m[4])
+      return {r:r, g:g, b:b, a:parseFloat(m[4])}
+    return {r:r, g:g, b:b}
+  }
+  function presentModalPicker(x, y, cssColor) {
+    var rgb = cssColorToRGB(cssColor)
+    picker = makePicker({r:rgb.r/255,g:rgb.g/255,b:rgb.b/255})
+    picker.el.style.left = x + 'px'
+    picker.el.style.top = y + 'px'
+    var modalFrame = document.createElement('div')
+    modalFrame.style.position = 'fixed'
+    modalFrame.style.top = modalFrame.style.left = modalFrame.style.bottom = modalFrame.style.right = '0'
+    modalFrame.onclick = function() {
+      document.body.removeChild(modalFrame)
+      document.body.removeChild(picker.el)
+    }
+    document.body.appendChild(modalFrame)
     document.body.appendChild(picker.el)
+  }
+  color.onclick = function(e) {
+    var swatch = color.querySelector('.swatch')
+    var swatchPos = swatch.getBoundingClientRect()
+    var x = swatchPos.left + window.scrollX
+    var y = swatchPos.bottom + window.scrollY + 4
+    presentModalPicker(x, y, swatch.style.backgroundColor)
   }
 </script>

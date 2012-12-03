@@ -180,7 +180,6 @@ makePicker = (color={h:180,s:1,l:0.5}) ->
   style lKnob, left: '-1px'
   lSlider.appendChild lKnob
 
-  console.log(originalColor)
   colorPreview = document.createElement 'div'
   div.appendChild colorPreview
   style colorPreview,

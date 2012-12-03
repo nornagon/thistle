@@ -31,16 +31,27 @@
     var rgb = cssColorToRGB(cssColor)
     picker = makePicker({r:rgb.r/255,g:rgb.g/255,b:rgb.b/255})
     picker.el.style.left = x + 'px'
-    picker.el.style.top = y + 'px'
+    picker.el.style.top = y-10 + 'px'
+    picker.el.style.opacity = '0'
+    picker.el.style.webkitTransition = '0.15s'
     var modalFrame = document.createElement('div')
     modalFrame.style.position = 'fixed'
     modalFrame.style.top = modalFrame.style.left = modalFrame.style.bottom = modalFrame.style.right = '0'
     modalFrame.onclick = function() {
       document.body.removeChild(modalFrame)
-      document.body.removeChild(picker.el)
+
+      picker.el.style.top = y+10+'px'
+      picker.el.style.opacity = 0
+      picker.el.addEventListener('webkitTransitionEnd', function end() {
+        document.body.removeChild(picker.el)
+        picker.el.removeEventListener('webkitTransitionEnd', end);
+      })
     }
     document.body.appendChild(modalFrame)
     document.body.appendChild(picker.el)
+    picker.el.offsetHeight;
+    picker.el.style.opacity = '1'
+    picker.el.style.top = y + 'px'
   }
   color.onclick = function(e) {
     var swatch = color.querySelector('.swatch')

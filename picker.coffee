@@ -112,7 +112,12 @@ knob = (size) ->
     borderRadius: Math.floor(size/2) + 'px'
     cursor: 'pointer'
     backgroundImage: '-webkit-gradient(radial, 50% 0%, 0, 50% 0%, 15, color-stop(0%, rgba(255, 255, 255, 0.8)), color-stop(100%, rgba(255, 255, 255, 0.2)))'
-    webkitBoxShadow: 'white 0px 1px 1px inset, rgba(0, 0, 0, 0.4) 0px -1px 1px inset, rgba(0, 0, 0, 0.4) 0px 1px 4px 0px, rgba(0, 0, 0, 0.6) 0 0 2px'
+    boxShadow: 'white 0px 1px 1px inset, rgba(0, 0, 0, 0.4) 0px -1px 1px inset, rgba(0, 0, 0, 0.4) 0px 1px 4px 0px, rgba(0, 0, 0, 0.6) 0 0 2px'
+
+  # moz
+  style el,
+    backgroundImage: 'radial-gradient(circle at center top, rgba(255,255,255,0.8), rgba(255, 255, 255, 0.2) 15px'
+
   el
 
 hslToCSS = (h, s, l) ->
@@ -148,8 +153,10 @@ makePicker = (color={h:180,s:1,l:0.5}) ->
     boxShadow: '1px 1px 5px hsla(0, 0%, 39%, 0.2), hsla(0, 0%, 100%, 0.9) 0px 0px 1em 0.3em inset'
     border: '1px solid hsla(0, 0%, 59%, 0.2)'
     position: 'absolute'
-    backgroundImage: '-webkit-gradient(linear, 0% 0%, 100% 100%, color-stop(25%, hsla(0, 0%, 0%, 0.05)), color-stop(25%, transparent), color-stop(50%, transparent), color-stop(50%, hsla(0, 0%, 0%, 0.05)), color-stop(75%, hsla(0, 0%, 0%, 0.05)), color-stop(75%, transparent), color-stop(100%, transparent))'
+    backgroundImage: '-webkit-linear-gradient(left top, hsla(0, 0%, 0%, 0.05) 25%, transparent 25%, transparent 50%, hsla(0, 0%, 0%, 0.05) 50%, hsla(0, 0%, 0%, 0.05) 75%, transparent 75%, transparent)'
     backgroundSize: '40px 40px'
+  style div,
+    backgroundImage: '-moz-linear-gradient(left top, hsla(0, 0%, 0%, 0.05) 25%, transparent 25%, transparent 50%, hsla(0, 0%, 0%, 0.05) 50%, hsla(0, 0%, 0%, 0.05) 75%, transparent 75%, transparent)'
 
   ref = makeHSLRef radius, width
   circle = makeHSLCircle ref, 1
@@ -187,7 +194,9 @@ makePicker = (color={h:180,s:1,l:0.5}) ->
     height: '25px'
     marginTop: '6px'
     borderRadius: '3px'
-    backgroundImage: '-webkit-gradient(linear, 0% -100%, 100% 200%, from(transparent), color-stop(0.7, transparent), color-stop(0.7, '+originalColor+'), to('+originalColor+'))'
+    backgroundImage: '-webkit-linear-gradient(-20deg, transparent, transparent 70%, '+originalColor+' 70%, '+originalColor+')'
+  style colorPreview,
+    backgroundImage: '-moz-linear-gradient(-20deg, transparent, transparent 70%, '+originalColor+' 70%, '+originalColor+')'
 
   k = knob 27
   circleContainer.appendChild k
@@ -203,7 +212,8 @@ makePicker = (color={h:180,s:1,l:0.5}) ->
     picker.emit 'changed'
 
     b = hslToCSS(currentH,currentS,0.5)
-    lSlider.style.backgroundImage = '-webkit-gradient(linear, 50% 100%, 50% 0%, from(black),color-stop(0.5,'+b+'),to(white))'
+    lSlider.style.backgroundImage = '-webkit-linear-gradient(bottom, black, '+b+' 50%, white)'
+    lSlider.style.backgroundImage = '-moz-linear-gradient(bottom, black, '+b+' 50%, white)'
 
   setS = (s) ->
     newCircle = makeHSLCircle ref, s
@@ -238,7 +248,7 @@ makePicker = (color={h:180,s:1,l:0.5}) ->
 
   attachSaturationControl = (c) ->
     updateCursor = (e) ->
-      x = e.offsetX; y = e.offsetY
+      x = e.layerX; y = e.layerY
       dx = x-radius; dy = y-radius; d = Math.sqrt(dx*dx+dy*dy)
       t = Math.atan2 dy, dx
       r = map(currentS, width, radius)
@@ -264,7 +274,7 @@ makePicker = (color={h:180,s:1,l:0.5}) ->
     c.addEventListener 'mousedown', (e) ->
       e.preventDefault()
 
-      x = e.offsetX; y = e.offsetY
+      x = e.layerX; y = e.layerY
       dx = x-radius; dy = y-radius; d = Math.sqrt(dx*dx+dy*dy)
       t = Math.atan2 dy, dx
       r = map(currentS, width, radius)

@@ -42,6 +42,7 @@
     picker.el.style.top = y-10 + 'px'
     picker.el.style.opacity = '0'
     picker.el.style.webkitTransition = '0.15s'
+    picker.el.style.MozTransition = '0.15s'
     var modalFrame = document.createElement('div')
     modalFrame.style.position = 'fixed'
     modalFrame.style.top = modalFrame.style.left = modalFrame.style.bottom = modalFrame.style.right = '0'
@@ -53,6 +54,10 @@
       picker.el.addEventListener('webkitTransitionEnd', function end() {
         document.body.removeChild(picker.el)
         picker.el.removeEventListener('webkitTransitionEnd', end);
+      })
+      picker.el.addEventListener('transitionend', function end() {
+        document.body.removeChild(picker.el)
+        picker.el.removeEventListener('transitionend', end);
       })
     }
     document.body.appendChild(modalFrame)

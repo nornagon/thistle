@@ -120,8 +120,11 @@ knob = (size) ->
 
   el
 
-hslToCSS = (h, s, l) ->
-  'hsl('+Math.round(h*180/Math.PI)+','+Math.round(s*100)+'%,'+Math.round(l*100)+'%)'
+hslToCSS = (h, s, l, a) ->
+  if a?
+    'hsla('+Math.round(h*180/Math.PI)+','+Math.round(s*100)+'%,'+Math.round(l*100)+'%,'+a+')'
+  else
+    'hsl('+Math.round(h*180/Math.PI)+','+Math.round(s*100)+'%,'+Math.round(l*100)+'%)'
 
 makePicker = (color={h:180,s:1,l:0.5}) ->
   radius = 80
@@ -142,6 +145,7 @@ makePicker = (color={h:180,s:1,l:0.5}) ->
     currentL = color.l
 
   originalColor = hslToCSS(currentH, currentS, currentL)
+  originalColorTransparent = hslToCSS(currentH, currentS, currentL, 0)
 
   div = document.createElement 'div'
   div.className = 'picker'
@@ -194,9 +198,9 @@ makePicker = (color={h:180,s:1,l:0.5}) ->
     height: '25px'
     marginTop: '6px'
     borderRadius: '3px'
-    backgroundImage: '-webkit-linear-gradient(-20deg, transparent, transparent 70%, '+originalColor+' 70%, '+originalColor+')'
+    backgroundImage: '-webkit-linear-gradient(-20deg, '+originalColorTransparent+', '+originalColorTransparent+' 69%, '+originalColor+' 70%, '+originalColor+')'
   style colorPreview,
-    backgroundImage: '-moz-linear-gradient(-20deg, transparent, transparent 70%, '+originalColor+' 70%, '+originalColor+')'
+    backgroundImage: '-moz-linear-gradient(-20deg, '+originalColorTransparent+', '+originalColorTransparent+' 69%, '+originalColor+' 70%, '+originalColor+')'
 
   k = knob 27
   circleContainer.appendChild k

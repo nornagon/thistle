@@ -401,6 +401,8 @@ presentModalPicker = (x, y, color) ->
       document.body.removeChild picker.el
       picker.el.removeEventListener 'transitionend', end
 
+    picker.emit 'closed'
+
   document.body.appendChild(modalFrame)
   document.body.appendChild(picker.el)
   picker.el.offsetHeight

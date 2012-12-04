@@ -122,9 +122,9 @@ knob = (size) ->
 
 hslToCSS = (h, s, l, a) ->
   if a?
-    'hsla('+Math.round(h*180/Math.PI)+','+Math.round(s*100)+'%,'+Math.round(l*100)+'%,'+a+')'
+    'hsla('+fmod(Math.round(h*180/Math.PI),360)+','+Math.round(s*100)+'%,'+Math.round(l*100)+'%,'+a+')'
   else
-    'hsl('+Math.round(h*180/Math.PI)+','+Math.round(s*100)+'%,'+Math.round(l*100)+'%)'
+    'hsl('+fmod(Math.round(h*180/Math.PI),360)+','+Math.round(s*100)+'%,'+Math.round(l*100)+'%)'
 
 cssColorToRGB = (cssColor) ->
   s = document.createElement('span')

@@ -126,7 +126,25 @@ hslToCSS = (h, s, l, a) ->
   else
     'hsl('+Math.round(h*180/Math.PI)+','+Math.round(s*100)+'%,'+Math.round(l*100)+'%)'
 
+cssColorToRGB = (cssColor) ->
+  s = document.createElement('span')
+  document.body.appendChild(s)
+  s.style.backgroundColor = cssColor
+  rgb = getComputedStyle(s).backgroundColor
+  document.body.removeChild(s)
+  m = /^rgb\((\d+), (\d+), (\d+)\)$/.exec(rgb)
+  if !m
+    m = /^rgba\((\d+), (\d+), (\d+), ([\d.]+)\)$/.exec(rgb)
+  r = parseInt(m[1]); g = parseInt(m[2]); b = parseInt(m[3])
+  if m[4]
+    return {r:r, g:g, b:b, a:parseFloat(m[4])}
+  return {r:r, g:g, b:b}
+
+# |color|: {h:[0-360],s:[0-1],l:[0-1]} or 'lightblue' or '#fef' or 'hsl(180,50%,20%)'
 makePicker = (color={h:180,s:1,l:0.5}) ->
+  if typeof color is 'string'
+    rgb = cssColorToRGB color
+    color = {r:rgb.r/255,g:rgb.g/255,b:rgb.b/255}
   radius = 80
   width = 25
 
@@ -351,8 +369,53 @@ makePicker = (color={h:180,s:1,l:0.5}) ->
       {h, s, l} = rgbToHSL r, g, b
       @set h*Math.PI/180, s, l
 
+  Object.defineProperty picker, 'cssColor',
+    get: -> hslToCSS currentH, currentS, currentL
+    set: (css) -> @rgb = cssColorToRGB css
+
   picker.set currentH * 180/Math.PI, currentS, currentL
 
   picker
 
-window.makePicker = makePicker
+presentModalPicker = (x, y, color) ->
+  picker = makePicker color
+  picker.el.style.left = x + 'px'
+  picker.el.style.top = y-10 + 'px'
+  picker.el.style.opacity = '0'
+  picker.el.style.webkitTransition = '0.15s'
+  picker.el.style.MozTransition = '0.15s'
+  modalFrame = document.createElement('div')
+  modalFrame.style.position = 'fixed'
+  modalFrame.style.top = modalFrame.style.left = modalFrame.style.bottom = modalFrame.style.right = '0'
+  modalFrame.onclick = ->
+    document.body.removeChild modalFrame
+
+    picker.el.style.top = y+10+'px'
+    picker.el.style.opacity = 0
+
+    picker.el.addEventListener 'webkitTransitionEnd', webkitEnd = ->
+      picker.el.parentNode.removeChild picker.el
+      picker.el.removeEventListener 'webkitTransitionEnd', webkitEnd
+
+    picker.el.addEventListener 'transitionend', end = ->
+      document.body.removeChild picker.el
+      picker.el.removeEventListener 'transitionend', end
+
+  document.body.appendChild(modalFrame)
+  document.body.appendChild(picker.el)
+  picker.el.offsetHeight
+  picker.el.style.opacity = '1'
+  picker.el.style.top = y + 'px'
+  return picker
+
+presentModalPickerBeneath = (el, color) ->
+  elPos = el.getBoundingClientRect()
+  x = elPos.left + window.scrollX
+  y = elPos.bottom + window.scrollY + 4
+  presentModalPicker x, y, color
+
+window.thistle = {
+  makePicker
+  presentModalPicker
+  presentModalPickerBeneath
+}

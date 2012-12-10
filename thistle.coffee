@@ -419,11 +419,11 @@ class Picker
       @el.style.top = y+10+'px'
       @el.style.opacity = 0
 
-      @el.addEventListener 'webkitTransitionEnd', webkitEnd = ->
+      @el.addEventListener 'webkitTransitionEnd', webkitEnd = =>
         @el.parentNode.removeChild @el
         @el.removeEventListener 'webkitTransitionEnd', webkitEnd
 
-      @el.addEventListener 'transitionend', end = ->
+      @el.addEventListener 'transitionend', end = =>
         document.body.removeChild @el
         @el.removeEventListener 'transitionend', end
 

@@ -1,3 +1,6 @@
+################################################################
+## Color tools
+
 hueToRGB = (m1, m2, h) ->
   h = if h < 0 then h + 1 else if h > 1 then h - 1 else h
   if h * 6 < 1 then return m1 + (m2 - m1) * h * 6
@@ -5,6 +8,7 @@ hueToRGB = (m1, m2, h) ->
   if h * 3 < 2 then return m1 + (m2 - m1) * (0.66666 - h) * 6
   return m1
 
+# h,s,l and r,g,b in [0,1]
 hslToRGB = (h, s, l) ->
   m2 = if l <= 0.5 then l * (s + 1) else l + s - l*s
   m1 = l * 2 - m2
@@ -12,6 +16,7 @@ hslToRGB = (h, s, l) ->
   g: hueToRGB m1, m2, h
   b: hueToRGB m1, m2, h-0.33333
 
+# r,g,b and s,l in [0,1], h in [0,360]
 rgbToHSL = (r, g, b) ->
   max = Math.max(r, g, b)
   min = Math.min(r, g, b)
@@ -34,98 +39,13 @@ rgbToHSL = (r, g, b) ->
 
   {h, s, l}
 
-style = (tag, styles) ->
-  for n,v of styles
-    tag.style[n] = v
-
-fmod = (x, m) ->
-  x = x % m
-  x += m if x < 0
-  x
-
-map = (v, min, max) -> min+(max-min)*Math.min(1,Math.max(0,v))
-
-makeHSLRef = (radius, width, lightness=0.5) ->
-  canvas = document.createElement 'canvas'
-  canvas.width = canvas.height = radius * 2
-  ctx = canvas.getContext '2d'
-
-  imgdata = ctx.createImageData canvas.width, canvas.height
-  data = imgdata.data
-  for y in [0...canvas.height]
-    for x in [0...canvas.width]
-      dy = y-radius
-      dx = x-radius
-      d = Math.sqrt(dy*dy+dx*dx)
-      if d > radius+1.5
-        continue
-      # d<10 maps to 0
-      # 10<=d<radius-width maps to [0,1]
-      # d>=radius-width maps to 1
-      d -= 10
-      s = Math.max 0, Math.min 1, d / (radius-width/2-10)
-      h = Math.atan2(dy, dx) / (Math.PI*2)
-      {r, g, b} = hslToRGB h, s, lightness
-      data[(y*canvas.width+x)*4+0] = r*255
-      data[(y*canvas.width+x)*4+1] = g*255
-      data[(y*canvas.width+x)*4+2] = b*255
-      data[(y*canvas.width+x)*4+3] = 255
-
-  ctx.putImageData imgdata, 0, 0
-  canvas._radius = radius
-  canvas._width = width
-  canvas
-
-makeHSLCircle = (ref, s) ->
-  radius = ref._radius
-  width = ref._width
-  r = map(s, width, radius)
-  canvas = document.createElement 'canvas'
-  canvas.width = canvas.height = radius * 2
-  ctx = canvas.getContext '2d'
-
-  ctx.fillStyle = 'rgba(0,0,0,0.3)'
-  ctx.beginPath()
-  ctx.arc radius, radius, radius, 0, Math.PI*2
-  ctx.fill()
-
-  ctx.fillStyle = 'black'
-  ctx.beginPath()
-  ctx.arc radius, radius, r, 0, Math.PI*2
-  ctx.arc radius, radius, r - width, 0, Math.PI*2, true
-  ctx.fill()
-
-  ctx.globalCompositeOperation = 'source-in'
-
-  #ctx.clip()
-  ctx.drawImage ref, 0, 0
-  canvas
-
-knob = (size) ->
-  el = document.createElement 'div'
-  el.className = 'knob'
-  style el,
-    position: 'absolute'
-    width: size + 'px'
-    height: size + 'px'
-    backgroundColor: 'red'
-    borderRadius: Math.floor(size/2) + 'px'
-    cursor: 'pointer'
-    backgroundImage: '-webkit-gradient(radial, 50% 0%, 0, 50% 0%, 15, color-stop(0%, rgba(255, 255, 255, 0.8)), color-stop(100%, rgba(255, 255, 255, 0.2)))'
-    boxShadow: 'white 0px 1px 1px inset, rgba(0, 0, 0, 0.4) 0px -1px 1px inset, rgba(0, 0, 0, 0.4) 0px 1px 4px 0px, rgba(0, 0, 0, 0.6) 0 0 2px'
-
-  # moz
-  style el,
-    backgroundImage: 'radial-gradient(circle at center top, rgba(255,255,255,0.8), rgba(255, 255, 255, 0.2) 15px'
-
-  el
-
 hslToCSS = (h, s, l, a) ->
   if a?
-    'hsla('+Math.round(h*180/Math.PI)+','+Math.round(s*100)+'%,'+Math.round(l*100)+'%,'+a+')'
+    'hsla('+fmod(Math.round(h*180/Math.PI),360)+','+Math.round(s*100)+'%,'+Math.round(l*100)+'%,'+a+')'
   else
-    'hsl('+Math.round(h*180/Math.PI)+','+Math.round(s*100)+'%,'+Math.round(l*100)+'%)'
+    'hsl('+fmod(Math.round(h*180/Math.PI),360)+','+Math.round(s*100)+'%,'+Math.round(l*100)+'%)'
 
+# r,g,b in [0,255]
 cssColorToRGB = (cssColor) ->
   s = document.createElement('span')
   document.body.appendChild(s)
@@ -137,143 +57,199 @@ cssColorToRGB = (cssColor) ->
     m = /^rgba\((\d+), (\d+), (\d+), ([\d.]+)\)$/.exec(rgb)
   r = parseInt(m[1]); g = parseInt(m[2]); b = parseInt(m[3])
   if m[4]
-    return {r:r, g:g, b:b, a:parseFloat(m[4])}
-  return {r:r, g:g, b:b}
+    return {r:r/255, g:g/255, b:b/255, a:parseFloat(m[4])}
+  return {r:r/255, g:g/255, b:b/255}
+
+################################################################
+## misc tools
+
+style = (tag, styles) ->
+  for n,v of styles
+    tag.style[n] = v
+  tag
+
+fmod = (x, m) ->
+  x = x % m
+  x += m if x < 0
+  x
+
+map = (v, min, max) -> min+(max-min)*Math.min(1,Math.max(0,v))
+
+################################################################
+
+class HSLCircle
+  constructor: (@radius, @width, @lightness) ->
+    radius = @radius
+    width = @width
+
+    canvas = @canvas = document.createElement 'canvas'
+    canvas.width = canvas.height = radius * 2
+    ctx = canvas.getContext '2d'
+
+    imgdata = ctx.createImageData canvas.width, canvas.height
+    data = imgdata.data
+    for y in [0...canvas.height]
+      for x in [0...canvas.width]
+        dy = y-radius
+        dx = x-radius
+        d = Math.sqrt(dy*dy+dx*dx)
+        if d > radius+1.5
+          continue
+        # d<10 maps to 0
+        # 10<=d<radius-width maps to [0,1]
+        # d>=radius-width maps to 1
+        d -= 10
+        s = Math.max 0, Math.min 1, d / (radius-width/2-10)
+        h = Math.atan2(dy, dx) / (Math.PI*2)
+        {r, g, b} = hslToRGB h, s, @lightness
+        data[(y*canvas.width+x)*4+0] = r*255
+        data[(y*canvas.width+x)*4+1] = g*255
+        data[(y*canvas.width+x)*4+2] = b*255
+        data[(y*canvas.width+x)*4+3] = 255
+
+    ctx.putImageData imgdata, 0, 0
+
+  drawHSLCircle: (canvas, saturation) ->
+    canvas.width = canvas.height = 2*@radius
+    ctx = canvas.getContext '2d'
+    width = @width
+    radius = @radius
+
+    highlighted_r = map saturation, width, radius
+
+    ctx.save()
+    ctx.fillStyle = 'rgba(0,0,0,0.3)'
+    ctx.beginPath()
+    ctx.arc radius, radius, radius, 0, Math.PI*2
+    ctx.fill()
+
+    ctx.fillStyle = 'black'
+    ctx.beginPath()
+    ctx.arc radius, radius, highlighted_r, 0, Math.PI*2
+    ctx.arc radius, radius, highlighted_r - width, 0, Math.PI*2, true
+    ctx.fill()
+
+    ctx.globalCompositeOperation = 'source-in'
+
+    ctx.drawImage @canvas, 0, 0
+    ctx.restore()
+
 
 # |color|: {h:[0-360],s:[0-1],l:[0-1]} or 'lightblue' or '#fef' or 'hsl(180,50%,20%)'
-makePicker = (color={h:180,s:1,l:0.5}) ->
+# returns {h:[0-2pi],s:[0-1],l:[0-1]}
+normalizeColor = (color) ->
   if typeof color is 'string'
-    rgb = cssColorToRGB color
-    color = {r:rgb.r/255,g:rgb.g/255,b:rgb.b/255}
+    color = cssColorToRGB color
+
+  if color.r? and color.g? and color.b?
+    color = rgbToHSL color.r, color.g, color.b
+    color.h = color.h * Math.PI/180
+  else if color.h? and color.s? and color.l?
+    color.h = color.h * Math.PI/180
+
+  color
+
+class Picker
   radius = 80
   width = 25
 
-  currentH = Math.PI
-  currentS = 1
-  currentL = 0.5
+  constructor: (color) ->
+    @color = normalizeColor color
 
-  if color.r? and color.g? and color.b?
-    hsl = rgbToHSL color.r, color.g, color.b
-    currentH = hsl.h * Math.PI/180
-    currentS = hsl.s
-    currentL = hsl.l
-  else if color.h? and color.s? and color.l?
-    currentH = color.h * Math.PI/180
-    currentS = color.s
-    currentL = color.l
+    @refColor = @color
 
-  originalColor = hslToCSS(currentH, currentS, currentL)
-  originalColorTransparent = hslToCSS(currentH, currentS, currentL, 0)
+    @el = makeRoot()
 
-  div = document.createElement 'div'
-  div.className = 'picker'
-  style div,
-    display: 'inline-block'
-    background: 'hsl(0, 0%, 97%)'
-    padding: '6px'
-    borderRadius: '6px'
-    boxShadow: '1px 1px 5px hsla(0, 0%, 39%, 0.2), hsla(0, 0%, 100%, 0.9) 0px 0px 1em 0.3em inset'
-    border: '1px solid hsla(0, 0%, 59%, 0.2)'
-    position: 'absolute'
-    backgroundImage: '-webkit-linear-gradient(left top, hsla(0, 0%, 0%, 0.05) 25%, transparent 25%, transparent 50%, hsla(0, 0%, 0%, 0.05) 50%, hsla(0, 0%, 0%, 0.05) 75%, transparent 75%, transparent)'
-    backgroundSize: '40px 40px'
-  style div,
-    backgroundImage: '-moz-linear-gradient(left top, hsla(0, 0%, 0%, 0.05) 25%, transparent 25%, transparent 50%, hsla(0, 0%, 0%, 0.05) 50%, hsla(0, 0%, 0%, 0.05) 75%, transparent 75%, transparent)'
+    @circleContainer = @el.appendChild makeCircle.call @
+    @lSlider = @el.appendChild makeLightnessSlider.call @
+    @colorPreview = @el.appendChild makeColorPreview.call @
 
-  ref = makeHSLRef radius, width
-  circle = makeHSLCircle ref, 1
-  circleContainer = document.createElement 'div'
-  style circleContainer,
-    display: 'inline-block'
-    width: radius*2+'px'
-    height: radius*2+'px'
-    borderRadius: radius+'px'
-    boxShadow: '0px 0px 7px rgba(0,0,0,0.3)'
+    attachEvents.call @
 
-  circleContainer.appendChild circle
-  div.appendChild circleContainer
+    # Bump the buttons to get it to show
+    @setLightness @color.l
 
-  lSlider = div.appendChild document.createElement 'div'
-  style lSlider,
-    display: 'inline-block'
-    width: '20px'
-    height: radius*2-22 + 'px'
-    marginLeft: '6px'
-    borderRadius: '10px'
-    boxShadow: 'hsla(0, 100%, 100%, 0.1) 0 1px 2px 1px inset, hsla(0, 100%, 100%, 0.2) 0 1px inset, hsla(0, 0%, 0%, 0.4) 0 -1px 1px inset, hsla(0, 0%, 0%, 0.4) 0 1px 1px'
-    position: 'relative'
-    top: '-11px'
-  lSlider._height = radius*2-22
+  setHue: (h) ->
+    @color.h = h
 
-  lKnob = knob 22
-  style lKnob, left: '-1px'
-  lSlider.appendChild lKnob
-
-  colorPreview = document.createElement 'div'
-  div.appendChild colorPreview
-  style colorPreview,
-    boxShadow: 'hsla(0, 0%, 0%, 0.5) 0 1px 5px, hsla(0, 100%, 100%, 0.4) 0 1px 1px inset, hsla(0, 0%, 0%, 0.3) 0 -1px 1px inset'
-    height: '25px'
-    marginTop: '6px'
-    borderRadius: '3px'
-    backgroundImage: '-webkit-linear-gradient(-20deg, '+originalColorTransparent+', '+originalColorTransparent+' 69%, '+originalColor+' 70%, '+originalColor+')'
-  style colorPreview,
-    backgroundImage: '-moz-linear-gradient(-20deg, '+originalColorTransparent+', '+originalColorTransparent+' 69%, '+originalColor+' 70%, '+originalColor+')'
-
-  k = knob 27
-  circleContainer.appendChild k
-
-  setH = (h) ->
-    r = map(currentS, width, radius) - width / 2
+    r = map(@color.s, width, radius) - width / 2
     oR = radius - width / 2
-    k.style.left = Math.round(oR + Math.cos(h)*r + 6 - 1) + 'px'
-    k.style.top = Math.round(oR + Math.sin(h)*r + 6 - 1) + 'px'
-    currentH = h
-    k.style.backgroundColor = hslToCSS(currentH, currentS, currentL)
-    colorPreview.style.backgroundColor = lKnob.style.backgroundColor = k.style.backgroundColor
-    picker.emit 'changed'
+    style @hueKnob,
+      # TODO: the 6 here is the padding of the root, we should find a better
+      # way
+      left: Math.round(oR + Math.cos(h)*r + 6 - 1) + 'px'
+      top: Math.round(oR + Math.sin(h)*r + 6 - 1) + 'px'
+    @colorPreview.style.backgroundColor =
+      @lKnob.style.backgroundColor = @hueKnob.style.backgroundColor =
+        hslToCSS(@color.h, @color.s, @color.l)
 
-    b = hslToCSS(currentH,currentS,0.5)
-    lSlider.style.backgroundImage = '-webkit-linear-gradient(bottom, black, '+b+' 50%, white)'
-    lSlider.style.backgroundImage = '-moz-linear-gradient(bottom, black, '+b+' 50%, white)'
+    b = hslToCSS(@color.h, @color.s, 0.5)
+    @lSlider.style.backgroundImage = '-webkit-linear-gradient(bottom, black, '+b+' 50%, white)'
+    @lSlider.style.backgroundImage = '-moz-linear-gradient(bottom, black, '+b+' 50%, white)'
 
-  setS = (s) ->
-    newCircle = makeHSLCircle ref, s
-    circleContainer.replaceChild newCircle, circle
-    circle = newCircle
-    currentS = s
-    setH currentH
+    @emit 'changed'
 
-  setL = (l) ->
-    ref = makeHSLRef radius, width, l
-    currentL = l
-    lKnob.style.top = (1-l) * lSlider._height - 11 + 'px'
-    setS currentS
+  setSaturation: (s) ->
+    @color.s = s
+    @circle.drawHSLCircle @circleCanvas, s
+    @setHue @color.h
 
+  setLightness: (l) ->
+    @color.l = l
+    @circle = new HSLCircle radius, width, l
+    @lKnob.style.top = (1-l) * @lSlider._height - 11 + 'px'
+    @setSaturation @color.s
 
-  lKnob.onmousedown = (e) ->
-    document.documentElement.style.cursor = 'pointer'
-    window.addEventListener('mousemove', move = (e) ->
-      r = lSlider.getBoundingClientRect()
-      y = e.clientY - r.top
-      setL Math.max 0, Math.min 1, 1-(y / (lSlider._height))
-    )
-    window.addEventListener('mouseup', up = (e) ->
-      window.removeEventListener('mousemove', move)
-      window.removeEventListener('mouseup', up)
-      window.removeEventListener('blur', up)
-      document.documentElement.style.cursor = ''
-    )
-    window.addEventListener('blur', up)
-    e.preventDefault()
-    e.stopPropagation()
+  # takes h in [0-360], s,l in [0-1]
+  setHSL: (h, s, l) ->
+    @color.h = fmod(h,360) * Math.PI/180
+    @color.s = Math.max 0, Math.min 1, s
+    l = Math.max 0, Math.min 1, l
+    @setLightness l
+  getHSL: ->
+    { h: fmod(@color.h * 180/Math.PI, 360), s: @color.s, l: @color.l }
 
-  attachSaturationControl = (c) ->
-    updateCursor = (e) ->
+  # r,g,b in [0-1]
+  setRGB: (r, g, b) ->
+    {h, s, l} = rgbToHSL r, g, b
+    @setHSL h, s, l
+  getRGB: -> hslToRGB @color.h/(Math.PI*2), @color.s, @color.l
+
+  getCSS: -> hslToCSS @color.h, @color.s, @color.l
+  setCSS: (css) ->
+    {r,g,b} = cssColorToRGB css
+    @setRGB r, g, b
+
+  on: (e, l) ->
+    @_listeners ?= {}
+    (@_listeners[e] ?= []).push l
+  emit: (e, args...) ->
+    l.call(this, args...) for l in @_listeners[e] ? [] if @_listeners
+  removeListener: (e, l) ->
+    @_listeners[e] = (k for k in @_listeners[e] when k isnt l) if @_listeners[e]
+
+  attachEvents = ->
+    @lKnob.onmousedown = (e) =>
+      document.documentElement.style.cursor = 'pointer'
+      window.addEventListener 'mousemove', move = (e) =>
+        r = @lSlider.getBoundingClientRect()
+        y = e.clientY - r.top
+        @setLightness Math.max 0, Math.min 1, 1-(y / (@lSlider._height))
+      window.addEventListener 'mouseup', up = (e) ->
+        window.removeEventListener('mousemove', move)
+        window.removeEventListener('mouseup', up)
+        window.removeEventListener('blur', up)
+        document.documentElement.style.cursor = ''
+      window.addEventListener('blur', up)
+      e.preventDefault()
+      e.stopPropagation()
+
+    c = @circleContainer
+    updateCursor = (e) =>
       x = e.layerX; y = e.layerY
       dx = x-radius; dy = y-radius; d = Math.sqrt(dx*dx+dy*dy)
       t = Math.atan2 dy, dx
-      r = map(currentS, width, radius)
+      r = map(@color.s, width, radius)
       if r-width < d < r
         if -Math.PI/8 < t < Math.PI/8 or t >= 7*Math.PI/8 or t <= -7*Math.PI/8
           c.style.cursor = 'ew-resize'
@@ -293,18 +269,20 @@ makePicker = (color={h:180,s:1,l:0.5}) ->
         c.style.cursor = ''
         c.removeEventListener 'mousemove', move
         c.removeEventListener 'mouseout', out
-    c.addEventListener 'mousedown', (e) ->
+        window.removeEventListener 'blur', out
+      window.addEventListener 'blur', out
+    c.addEventListener 'mousedown', (e) =>
       e.preventDefault()
 
       x = e.layerX; y = e.layerY
       dx = x-radius; dy = y-radius; d = Math.sqrt(dx*dx+dy*dy)
       t = Math.atan2 dy, dx
-      r = map(currentS, width, radius)
+      r = map(@color.s, width, radius)
       return unless r-width < d < r
 
       document.documentElement.style.cursor = c.style.cursor
-      window.addEventListener('mousemove', move = (e) ->
-        r = circle.getBoundingClientRect()
+      window.addEventListener 'mousemove', move = (e) =>
+        r = @circleCanvas.getBoundingClientRect()
         cx = r.left + r.width/2
         cy = r.top + r.height/2
         dx = e.clientX-cx
@@ -313,111 +291,158 @@ makePicker = (color={h:180,s:1,l:0.5}) ->
         # TODO: this is copied from above
         d -= 10
         s = Math.max 0, Math.min 1, d / (radius-width/2-10)
-        setS s
-      )
-      window.addEventListener('mouseup', up = (e) ->
-        window.removeEventListener('mousemove', move)
-        window.removeEventListener('mouseup', up)
-        window.removeEventListener('blur', up)
+        @setSaturation s
+
+      window.addEventListener 'mouseup', up = (e) ->
+        window.removeEventListener 'mousemove', move
+        window.removeEventListener 'mouseup', up
+        window.removeEventListener 'blur', up
         document.documentElement.style.cursor = ''
-      )
-      window.addEventListener('blur', up)
-  attachSaturationControl circleContainer
+      window.addEventListener 'blur', up
 
-  k.onmousedown = (e) ->
-    document.documentElement.style.cursor = 'pointer'
-    window.addEventListener('mousemove', move = (e) ->
-      r = circle.getBoundingClientRect()
-      cx = r.left + r.width/2
-      cy = r.top + r.height/2
-      setH Math.atan2 e.clientY-cy, e.clientX-cx
-    )
-    window.addEventListener('mouseup', up = (e) ->
-      window.removeEventListener('mousemove', move)
-      window.removeEventListener('mouseup', up)
-      window.removeEventListener('blur', up)
-      document.documentElement.style.cursor = ''
-    )
-    window.addEventListener('blur', up)
-    e.preventDefault()
-    e.stopPropagation()
+    @hueKnob.onmousedown = (e) =>
+      document.documentElement.style.cursor = 'pointer'
+      window.addEventListener 'mousemove', move = (e) =>
+        r = @circleCanvas.getBoundingClientRect()
+        cx = r.left + r.width/2
+        cy = r.top + r.height/2
+        @setHue Math.atan2 e.clientY-cy, e.clientX-cx
+      window.addEventListener 'mouseup', up = (e) ->
+        window.removeEventListener 'mousemove', move
+        window.removeEventListener 'mouseup', up
+        window.removeEventListener 'blur', up
+        document.documentElement.style.cursor = ''
+      window.addEventListener 'blur', up
+      e.preventDefault()
+      e.stopPropagation()
 
-  listeners = {}
+  makeRoot = ->
+    div = document.createElement 'div'
+    div.className = 'picker'
+    style div,
+      display: 'inline-block'
+      background: 'hsl(0, 0%, 97%)'
+      padding: '6px'
+      borderRadius: '6px'
+      boxShadow: '1px 1px 5px hsla(0, 0%, 39%, 0.2), hsla(0, 0%, 100%, 0.9) 0px 0px 1em 0.3em inset'
+      border: '1px solid hsla(0, 0%, 59%, 0.2)'
+      position: 'absolute'
+      backgroundImage: '-webkit-linear-gradient(left top, hsla(0, 0%, 0%, 0.05) 25%, transparent 25%, transparent 50%, hsla(0, 0%, 0%, 0.05) 50%, hsla(0, 0%, 0%, 0.05) 75%, transparent 75%, transparent)'
+      backgroundSize: '40px 40px'
+    style div,
+      backgroundImage: '-moz-linear-gradient(left top, hsla(0, 0%, 0%, 0.05) 25%, transparent 25%, transparent 50%, hsla(0, 0%, 0%, 0.05) 50%, hsla(0, 0%, 0%, 0.05) 75%, transparent 75%, transparent)'
+    div
 
-  picker =
-    el: div
-    on: (e, l) ->
-      (listeners[e] ?= []).push l
-    emit: (e, args...) ->
-      l.call(this, args...) for l in listeners[e] ? []
-    removeListener: (e, l) ->
-      listeners[e] = (k for k in listeners[e] when k isnt l) if listeners[e]
-    set: (h, s, l) ->
-      currentH = fmod(h,360) * Math.PI/180
-      currentS = Math.max 0, Math.min 1, s
-      currentL = Math.max 0, Math.min 1, l
-      setL l
+  makeCircle = ->
+    circleContainer = document.createElement 'div'
+    style circleContainer,
+      display: 'inline-block'
+      width: radius*2+'px'
+      height: radius*2+'px'
+      borderRadius: radius+'px'
+      boxShadow: '0px 0px 7px rgba(0,0,0,0.3)'
 
-  Object.defineProperty picker, 'hsl',
-    get: ->
-      { h: fmod(currentH * 180/Math.PI, 360), s: currentS, l: currentL }
-    set: ({h,s,l}) -> @set h, s, l
+    circleContainer.appendChild @circleCanvas = document.createElement 'canvas'
 
-  Object.defineProperty picker, 'rgb',
-    get: -> hslToRGB currentH/(Math.PI*2), currentS, currentL
-    set: ({r,g,b}) ->
-      {h, s, l} = rgbToHSL r, g, b
-      @set h*Math.PI/180, s, l
+    @hueKnob = k = makeKnob 27
+    circleContainer.appendChild k
 
-  Object.defineProperty picker, 'cssColor',
-    get: -> hslToCSS currentH, currentS, currentL
-    set: (css) -> @rgb = cssColorToRGB css
+    circleContainer
 
-  picker.set currentH * 180/Math.PI, currentS, currentL
+  makeLightnessSlider = ->
+    lSlider = document.createElement 'div'
+    style lSlider,
+      display: 'inline-block'
+      width: '20px'
+      height: radius*2-22 + 'px'
+      marginLeft: '6px'
+      borderRadius: '10px'
+      boxShadow: 'hsla(0, 100%, 100%, 0.1) 0 1px 2px 1px inset, hsla(0, 100%, 100%, 0.2) 0 1px inset, hsla(0, 0%, 0%, 0.4) 0 -1px 1px inset, hsla(0, 0%, 0%, 0.4) 0 1px 1px'
+      position: 'relative'
+      top: '-11px'
+    lSlider._height = radius*2-22
 
-  picker
+    @lKnob = k = makeKnob 22
+    style k, left: '-1px'
+    lSlider.appendChild k
 
-presentModalPicker = (x, y, color) ->
-  picker = makePicker color
-  picker.el.style.left = x + 'px'
-  picker.el.style.top = y-10 + 'px'
-  picker.el.style.opacity = '0'
-  picker.el.style.webkitTransition = '0.15s'
-  picker.el.style.MozTransition = '0.15s'
-  modalFrame = document.createElement('div')
-  modalFrame.style.position = 'fixed'
-  modalFrame.style.top = modalFrame.style.left = modalFrame.style.bottom = modalFrame.style.right = '0'
-  modalFrame.onclick = ->
-    document.body.removeChild modalFrame
+    lSlider
 
-    picker.el.style.top = y+10+'px'
-    picker.el.style.opacity = 0
+  makeColorPreview = ->
+    colorPreview = document.createElement 'div'
+    originalColor = hslToCSS(@refColor.h, @refColor.s, @refColor.l)
+    originalColorTransparent = hslToCSS(@refColor.h, @refColor.s, @refColor.l, 0)
+    style colorPreview,
+      boxShadow: 'hsla(0, 0%, 0%, 0.5) 0 1px 5px, hsla(0, 100%, 100%, 0.4) 0 1px 1px inset, hsla(0, 0%, 0%, 0.3) 0 -1px 1px inset'
+      height: '25px'
+      marginTop: '6px'
+      borderRadius: '3px'
+      backgroundImage: '-webkit-linear-gradient(-20deg, '+originalColorTransparent+', '+originalColorTransparent+' 69%, '+originalColor+' 70%, '+originalColor+')'
+    style colorPreview,
+      backgroundImage: '-moz-linear-gradient(-20deg, '+originalColorTransparent+', '+originalColorTransparent+' 69%, '+originalColor+' 70%, '+originalColor+')'
 
-    picker.el.addEventListener 'webkitTransitionEnd', webkitEnd = ->
-      picker.el.parentNode.removeChild picker.el
-      picker.el.removeEventListener 'webkitTransitionEnd', webkitEnd
+    colorPreview
 
-    picker.el.addEventListener 'transitionend', end = ->
-      document.body.removeChild picker.el
-      picker.el.removeEventListener 'transitionend', end
+  makeKnob = (size) ->
+    el = document.createElement 'div'
+    el.className = 'knob'
+    style el,
+      position: 'absolute'
+      width: size + 'px'
+      height: size + 'px'
+      backgroundColor: 'red'
+      borderRadius: Math.floor(size/2) + 'px'
+      cursor: 'pointer'
+      backgroundImage: '-webkit-gradient(radial, 50% 0%, 0, 50% 0%, 15, color-stop(0%, rgba(255, 255, 255, 0.8)), color-stop(100%, rgba(255, 255, 255, 0.2)))'
+      boxShadow: 'white 0px 1px 1px inset, rgba(0, 0, 0, 0.4) 0px -1px 1px inset, rgba(0, 0, 0, 0.4) 0px 1px 4px 0px, rgba(0, 0, 0, 0.6) 0 0 2px'
 
-    picker.emit 'closed'
+    # moz
+    style el,
+      backgroundImage: 'radial-gradient(circle at center top, rgba(255,255,255,0.8), rgba(255, 255, 255, 0.2) 15px'
 
-  document.body.appendChild(modalFrame)
-  document.body.appendChild(picker.el)
-  picker.el.offsetHeight
-  picker.el.style.opacity = '1'
-  picker.el.style.top = y + 'px'
-  return picker
+    el
 
-presentModalPickerBeneath = (el, color) ->
-  elPos = el.getBoundingClientRect()
-  x = elPos.left + window.scrollX
-  y = elPos.bottom + window.scrollY + 4
-  presentModalPicker x, y, color
+  presentModal: (x, y) ->
+    style @el,
+      left: x + 'px'
+      top: y-10 + 'px'
+      opacity: '0'
+      webkitTransition: '0.15s'
+      MozTransition: '0.15s'
+
+    modalFrame = document.createElement 'div'
+    modalFrame.style.position = 'fixed'
+    modalFrame.style.top = modalFrame.style.left = modalFrame.style.bottom = modalFrame.style.right = '0'
+    modalFrame.onclick = =>
+      document.body.removeChild modalFrame
+
+      @el.style.top = y+10+'px'
+      @el.style.opacity = 0
+
+      @el.addEventListener 'webkitTransitionEnd', webkitEnd = ->
+        @el.parentNode.removeChild @el
+        @el.removeEventListener 'webkitTransitionEnd', webkitEnd
+
+      @el.addEventListener 'transitionend', end = ->
+        document.body.removeChild @el
+        @el.removeEventListener 'transitionend', end
+
+      @emit 'closed'
+
+    document.body.appendChild modalFrame
+    document.body.appendChild @el
+    @el.offsetHeight
+    @el.style.opacity = '1'
+    @el.style.top = y + 'px'
+    @
+
+  presentModalBeneath: (el) ->
+    elPos = el.getBoundingClientRect()
+    x = elPos.left + window.scrollX
+    y = elPos.bottom + window.scrollY + 4
+    @presentModal x, y
+
 
 window.thistle = {
-  makePicker
-  presentModalPicker
-  presentModalPickerBeneath
+  Picker
 }

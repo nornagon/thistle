@@ -530,12 +530,12 @@
         _this.el.style.top = y + 10 + 'px';
         _this.el.style.opacity = 0;
         _this.el.addEventListener('webkitTransitionEnd', webkitEnd = function() {
-          this.el.parentNode.removeChild(this.el);
-          return this.el.removeEventListener('webkitTransitionEnd', webkitEnd);
+          _this.el.parentNode.removeChild(_this.el);
+          return _this.el.removeEventListener('webkitTransitionEnd', webkitEnd);
         });
         _this.el.addEventListener('transitionend', end = function() {
-          document.body.removeChild(this.el);
-          return this.el.removeEventListener('transitionend', end);
+          document.body.removeChild(_this.el);
+          return _this.el.removeEventListener('transitionend', end);
         });
         return _this.emit('closed');
       };

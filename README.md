@@ -11,65 +11,68 @@ Inspired by Brandon Mathis's excellent [hslpicker](http://hslpicker.com).
 ```html
 <script src='http://nornagon.github.com/thistle/thistle.js'></script>
 <script>
-  var picker = thistle.makePicker('rgb(129,34,203)')
+  var picker = new thistle.Picker('rgb(129,34,203)')
   document.body.appendChild(picker.el)
   picker.on('changed', function() {
-    document.body.style.backgroundColor = picker.cssColor
+    document.body.style.backgroundColor = picker.getCSS()
   })
 </script>
 ```
 
-## methods
+## creating a picker
 
-There are three methods in the thistle API:
+#### new thistle.Picker(color)
+Creates a picker object but doesn't attach it to the DOM. You're free to put it
+wherever you like in your page, animate it, hide it, whatever. The argument
+`color` can be either a string representing a CSS color like `#fff`,
+`mediumseagreen`, `hsl(34,20%,45%)` or `rgb(234,221,193)`, or an object
+specifying hsl components like `{h:231, s:1, l:0.5}`.
 
-#### thistle.makePicker(color)
-Creates a picker object but doesn't attach it to
-  the DOM. You're free to put it wherever you like in your page, animate it,
-  hide it, whatever. The argument `color` can be either a string representing a
-  CSS color like `#fff`, `mediumseagreen`, `hsl(34,20%,45%)` or
-  `rgb(234,221,193)`, or an object specifying hsl components like
-  `{h:231, s:1, l:0.5}`.
-#### thistle.presentModalPickerBeneath(element, color)
-Creates a picker object
-  for `color` like `thistle.makePicker`, and then adds it to the DOM, animates
-  it into being just beneath `element`, and creates a modalness that means if
-  the user clicks anywhere except inside the picker, the picker will be
-  dismissed.
-#### thistle.presentModalPicker(x, y, color)
-Just like
-  `thistle.presentModalPickerBeneath`, but you get to choose the precise x/y
-  coordinates at which the picker will appear.
+## presenting a picker
+
+You can add the picker to the DOM by attaching `picker.el` somewhere, or you
+can use one of the convenient `presentModal` methods instead.
+
+#### picker.presentModalBeneath(element)
+Adds the picker to the DOM, animates it into being just beneath `element`, and
+creates a modalness that means if the user clicks anywhere except inside the
+picker, the picker will be dismissed.
+
+#### picker.presentModal(x, y, color)
+Just like `picker.presentModalBeneath`, but you get to choose the precise x,y
+coordinates at which the picker will appear.
 
 ## events
 
 Once you have created your picker object, you can listen to events on it.
 
 #### picker.on('changed', function() { ... })
-Fired when the user changes the color. To figure out what the current color is, use one of the properties described below (`cssColor` is a pretty handy one.)
+Fired when the user changes the color. To figure out what the current color is,
+use one of the color getters described below (`getCSS()` is a pretty handy one.)
 
 #### picker.on('closed', function() { ... })
-If you created a modal picker, you can listen to the `'closed'` event to be
+If you present the picker modally, you can listen to the `'closed'` event to be
 notified when the user dismisses the picker.
 
 ## properties
 
 To fetch the current color of the picker, you can enquire with any of
-`picker.rgb`, `picker.hsl` or `picker.cssColor`.
+`picker.getRGB()`, `picker.getHSL()` or `picker.getCSS()`.
 
-- `picker.rgb` is an object like `{r:0.5, g:0.3, b:0.9}`.
-- `picker.hsl` is an object like `{h:180, s:0.5, l:0.5}`.
-- `picker.cssColor` will return a string which you can assign to, say,
+- `picker.getRGB()` returns an object like `{r:0.5, g:0.3, b:0.9}`.
+- `picker.getHSL()` returns an object like `{h:180, s:0.5, l:0.5}`.
+- `picker.getCSS()` will return a string describing the color in CSS format
+  (e.g. `'hsl(300, 24%, 80%)'`), which you can assign to, say,
   `element.style.backgroundColor`.
 
-You can also set any of these properties with an object like the one they
-return:
+You can also set the colors using the related `setRGB()`, `setHSL()` and
+`setCSS()` methods.
 
 ```javascript
-picker.cssColor = 'mintcream'
-picker.cssColor = '#d8bfd8'
-picker.rgb = {r:1.0, g:0.4, b:0.0}
-picker.hsl = {h:45, s:0.9, l:0.6}
+picker.setCSS('mintcream')
+picker.setCSS('#d8bfd8')
+picker.setRGB(1.0, 0.4, 0.0)
+picker.setHSL(45, 0.9, 0.6)
 ```
 
 Amusingly, 'thistle' is a [valid CSS color](http://dev.w3.org/csswg/css3-color/#svg-color).

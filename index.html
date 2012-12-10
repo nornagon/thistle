@@ -24,10 +24,10 @@
 <script>
   color.onclick = function(e) {
     var swatch = color.querySelector('.swatch')
-    var picker = thistle.presentModalPickerBeneath(swatch, swatch.style.backgroundColor)
+    var picker = (new thistle.Picker(swatch.style.backgroundColor)).presentModalBeneath(swatch)
     picker.on('changed', function() {
-      swatch.style.backgroundColor = picker.cssColor
-      color.querySelector('.name').textContent = picker.cssColor
+      swatch.style.backgroundColor = picker.getCSS()
+      color.querySelector('.name').textContent = picker.getCSS()
     })
   }
 

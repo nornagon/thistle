@@ -339,6 +339,7 @@ class Picker
       backgroundSize: '40px 40px'
     style div,
       backgroundImage: '-moz-linear-gradient(left top, hsla(0, 0%, 0%, 0.05) 25%, transparent 25%, transparent 50%, hsla(0, 0%, 0%, 0.05) 50%, hsla(0, 0%, 0%, 0.05) 75%, transparent 75%, transparent)'
+      zIndex: '1000'
     div
 
   makeCircle = ->
@@ -421,6 +422,7 @@ class Picker
     modalFrame = document.createElement 'div'
     modalFrame.style.position = 'fixed'
     modalFrame.style.top = modalFrame.style.left = modalFrame.style.bottom = modalFrame.style.right = '0'
+    modalFrame.style.zIndex = '999'
     modalFrame.onclick = =>
       document.body.removeChild modalFrame
 

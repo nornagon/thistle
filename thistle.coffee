@@ -60,6 +60,14 @@ cssColorToRGB = (cssColor) ->
     return {r:r/255, g:g/255, b:b/255, a:parseFloat(m[4])}
   return {r:r/255, g:g/255, b:b/255}
 
+isValidCSSColor = (cssColor) ->
+  s = document.createElement('span')
+  document.body.appendChild(s)
+  s.style.backgroundColor = cssColor
+  ret = s.style.backgroundColor.length > 0
+  s.remove()
+  return ret
+
 ################################################################
 ## misc tools
 
@@ -445,4 +453,5 @@ class Picker
 
 window.thistle = {
   Picker
+  isValidCSSColor
 }

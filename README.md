@@ -34,9 +34,9 @@ You can add the picker to the DOM by attaching `picker.el` somewhere, or you
 can use one of the convenient `presentModal` methods instead.
 
 #### picker.presentModalBeneath(element)
-Adds the picker to the DOM, animates it into being just beneath `element`, and
-creates a modalness that means if the user clicks anywhere except inside the
-picker, the picker will be dismissed.
+Adds the picker to the DOM, animates it into being just underneath `element`,
+and creates a modalness that means if the user clicks anywhere except inside
+the picker, the picker will be dismissed.
 
 #### picker.presentModal(x, y, color)
 Just like `picker.presentModalBeneath`, but you get to choose the precise x,y

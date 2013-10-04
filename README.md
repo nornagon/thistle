@@ -38,7 +38,7 @@ Adds the picker to the DOM, animates it into being just underneath `element`,
 and creates a modalness that means if the user clicks anywhere except inside
 the picker, the picker will be dismissed.
 
-#### picker.presentModal(x, y, color)
+#### picker.presentModal(x, y)
 Just like `picker.presentModalBeneath`, but you get to choose the precise x,y
 coordinates at which the picker will appear.
 

@@ -75,4 +75,4 @@ picker.setRGB(1.0, 0.4, 0.0)
 picker.setHSL(45, 0.9, 0.6)
 ```
 
-Amusingly, 'thistle' is a [valid CSS color](http://dev.w3.org/csswg/css3-color/#svg-color).
+Amusingly, 'thistle' is a [valid CSS color](http://dev.w3.org/csswg/css-color/#valuedef-thistle).

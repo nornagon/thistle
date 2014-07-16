@@ -60,6 +60,14 @@ cssColorToRGB = (cssColor) ->
     return {r:r/255, g:g/255, b:b/255, a:parseFloat(m[4])}
   return {r:r/255, g:g/255, b:b/255}
 
+isValidCSSColor = (cssColor) ->
+  s = document.createElement('span')
+  document.body.appendChild(s)
+  s.style.backgroundColor = cssColor
+  ret = s.style.backgroundColor.length > 0
+  s.remove()
+  return ret
+
 ################################################################
 ## misc tools
 
@@ -331,6 +339,7 @@ class Picker
       backgroundSize: '40px 40px'
     style div,
       backgroundImage: '-moz-linear-gradient(left top, hsla(0, 0%, 0%, 0.05) 25%, transparent 25%, transparent 50%, hsla(0, 0%, 0%, 0.05) 50%, hsla(0, 0%, 0%, 0.05) 75%, transparent 75%, transparent)'
+      zIndex: '1000'
     div
 
   makeCircle = ->
@@ -413,19 +422,20 @@ class Picker
     modalFrame = document.createElement 'div'
     modalFrame.style.position = 'fixed'
     modalFrame.style.top = modalFrame.style.left = modalFrame.style.bottom = modalFrame.style.right = '0'
+    modalFrame.style.zIndex = '999'
     modalFrame.onclick = =>
       document.body.removeChild modalFrame
 
       @el.style.top = y+10+'px'
       @el.style.opacity = 0
 
-      @el.addEventListener 'webkitTransitionEnd', webkitEnd = =>
-        @el.parentNode.removeChild @el
-        @el.removeEventListener 'webkitTransitionEnd', webkitEnd
-
-      @el.addEventListener 'transitionend', end = =>
+      end = =>
         document.body.removeChild @el
+        @el.removeEventListener 'webkitTransitionEnd', end
         @el.removeEventListener 'transitionend', end
+
+      @el.addEventListener 'webkitTransitionEnd', end
+      @el.addEventListener 'transitionend', end
 
       @emit 'closed'
 
@@ -445,4 +455,5 @@ class Picker
 
 window.thistle = {
   Picker
+  isValidCSSColor
 }
